@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+smolagents
+litellm
+duckduckgo-search

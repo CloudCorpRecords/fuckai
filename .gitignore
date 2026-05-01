@@ -1,0 +1,30 @@
+# AgentZero Gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Node / Electron
+node_modules/
+dist/
+out/
+.eslintcache
+
+# Project Specific (Personal Data)
+wiki/
+!wiki/.gitkeep
+raw/
+!raw/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
