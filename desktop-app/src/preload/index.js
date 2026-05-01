@@ -27,6 +27,17 @@ const api = {
   importPage: (path) => ipcRenderer.invoke('wiki-import', path),
   getWikiGraph: () => ipcRenderer.invoke('wiki-graph'),
 
+  // Models
+  getModelsList: () => ipcRenderer.invoke('models-list'),
+  getCurrentModel: () => ipcRenderer.invoke('models-current'),
+  switchModel: (name) => ipcRenderer.invoke('models-switch', name),
+  pullModel: (name) => ipcRenderer.send('models-pull', name),
+  onModelsPullChunk: (callback) => {
+    const handler = (_, data) => callback(data)
+    ipcRenderer.on('models-pull-chunk', handler)
+    return () => ipcRenderer.removeListener('models-pull-chunk', handler)
+  },
+
   // Backend lifecycle events
   onBackendEvent: (callback) => {
     const handler = (_, data) => callback(data)

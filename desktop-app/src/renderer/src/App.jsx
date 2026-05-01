@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import WikiPanel from './WikiPanel.jsx'
 import ReasoningPanel from './ReasoningPanel.jsx'
+import ModelManager from './ModelManager.jsx'
 
 // ─── GPU Monitor ─────────────────────────────────────────────────────────────
 function GpuBar({ label, value, max, unit, color }) {
@@ -91,6 +92,8 @@ export default function App() {
   const [showMonitor, setShowMonitor] = useState(true)
   const [showWiki, setShowWiki] = useState(false)
   const [showReasoning, setShowReasoning] = useState(true)
+  const [showModels, setShowModels] = useState(false)
+  const [currentModel, setCurrentModel] = useState('llama3.1')
   const [thoughts, setThoughts] = useState([])
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
@@ -107,6 +110,7 @@ export default function App() {
       try {
         const res = await api.healthCheck()
         setEngineStatus(res.online ? 'online' : 'offline')
+        if (res.model) setCurrentModel(res.model)
       } catch {
         setEngineStatus('offline')
       }
@@ -183,7 +187,9 @@ export default function App() {
       <header className="header">
         <div className="header-left">
           <div className="logo">AgentZero</div>
-          <div className="model-tag">Llama 3.1 · Local</div>
+          <button className="model-tag-btn" onClick={() => setShowModels(true)} disabled={isLoading}>
+            ⚡ {currentModel}
+          </button>
         </div>
         <div className="header-right">
           <button className={`monitor-toggle ${showReasoning ? 'active' : ''}`} onClick={() => setShowReasoning(p => !p)} title="Reasoning Sidebar">🧠</button>
@@ -195,6 +201,15 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {showModels && (
+        <ModelManager 
+          isOpen={showModels} 
+          onClose={() => setShowModels(false)} 
+          currentModel={currentModel}
+          onModelSwitched={(name) => setCurrentModel(name)}
+        />
+      )}
 
       {showMonitor && <GpuMonitor gpu={gpu} backendPid={backendPid} />}
 

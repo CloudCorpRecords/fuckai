@@ -69,16 +69,27 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.model-tag {
-  font-size: 10px;
+.model-tag-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #a78bfa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 700;
-  background: var(--bg-input);
-  padding: 3px 8px;
-  border-radius: 6px;
-  color: var(--accent);
-  border: 1px solid rgba(124, 106, 247, 0.2);
-  text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+.model-tag-btn:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.6);
+  color: #c4b5fd;
+}
+.model-tag-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .header-right {

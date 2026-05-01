@@ -145,6 +145,19 @@ ipcMain.handle('wiki-global', async () => { try { return await httpGet('/wiki/gl
 ipcMain.handle('wiki-import', async (_, path) => { try { return await httpPostJson(`/wiki/import?path=${encodeURIComponent(path)}`, {}) } catch { return null } })
 ipcMain.handle('wiki-graph', async () => { try { return await httpGet('/wiki/graph') } catch { return { nodes: [], links: [] } } })
 
+// Model Management IPC handlers
+ipcMain.handle('models-list', async () => { try { return await httpGet('/models') } catch { return { models: [] } } })
+ipcMain.handle('models-current', async () => { try { return await httpGet('/models/current') } catch { return { current_model: 'unknown' } } })
+ipcMain.handle('models-switch', async (_, name) => { try { return await httpPostJson(`/models/switch?name=${encodeURIComponent(name)}`, {}) } catch { return null } })
+
+ipcMain.on('models-pull', (event, name) => {
+  httpPostStream(`/models/pull?name=${encodeURIComponent(name)}`, {}, (data) => {
+    event.sender.send('models-pull-chunk', data)
+  }, () => {
+    event.sender.send('models-pull-chunk', { status: 'done' })
+  })
+})
+
 // Streaming chat via IPC — sends chunks back as events
 ipcMain.on('chat-send', (event, { message, msgId, history = [] }) => {
   httpPostStream('/chat', { message, history }, (data) => {

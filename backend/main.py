@@ -12,6 +12,7 @@ import threading
 import re
 import sys
 import io
+import requests
 from pathlib import Path
 from datetime import datetime
 from wiki_engine import WikiEngine
@@ -39,6 +40,7 @@ MAX_HISTORY = 30
 history_lock = threading.Lock()
 
 # ─── LLM & Agent (lazy loaded) ───────────────────────────────────────────────
+current_model = "llama3.1"
 _model = None
 _agent = None
 _agent_lock = threading.Lock()
@@ -49,11 +51,11 @@ def get_model():
     if _model is None:
         from smolagents import LiteLLMModel
         _model = LiteLLMModel(
-            model_id="ollama_chat/llama3.1",
+            model_id=f"ollama_chat/{current_model}",
             api_base="http://localhost:11434",
             api_key="ollama"
         )
-        print("[AgentZero] Model loaded.")
+        print(f"[AgentZero] Model loaded: {current_model}")
     return _model
 
 
@@ -69,7 +71,7 @@ def get_agent():
                     verbosity_level=0,
                     max_steps=5
                 )
-                print("[AgentZero] Agent ready.")
+                print(f"[AgentZero] Agent ready with model: {current_model}")
     return _agent
 
 
@@ -88,7 +90,7 @@ def build_system_prompt(query: str) -> str:
     """Build prompt by selecting relevant wiki pages for this specific query."""
     wiki_context = wiki.get_context_for_query(query, max_pages=4)
 
-    base = """You are AgentZero, a highly capable personal AI assistant running entirely locally on the user's GPU (llama3.1, RTX 3080 Ti).
+    base = f"""You are AgentZero, a highly capable personal AI assistant running entirely locally on the user's GPU ({current_model}, RTX 3080 Ti).
 
 PERSONALITY:
 - Direct, intelligent, warm but efficient
@@ -238,6 +240,42 @@ async def wiki_clip(url: str):
     """Clip a web page into the wiki."""
     return wiki.clip_url(url, llm_caller=call_llm_direct)
 
+# ─── Models ───────────────────────────────────────────────────────────────────
+@app.get("/models")
+async def list_models():
+    try:
+        r = requests.get("http://localhost:11434/api/tags")
+        return r.json()
+    except Exception as e:
+        return {"models": [], "error": str(e)}
+
+@app.get("/models/current")
+async def get_current_model():
+    return {"current_model": current_model}
+
+@app.post("/models/switch")
+async def switch_model(name: str):
+    global current_model, _model, _agent
+    with _agent_lock:
+        current_model = name
+        _model = None
+        _agent = None
+    get_agent()  # Warm up new model
+    return {"status": "switched", "model": current_model}
+
+@app.post("/models/pull")
+async def pull_model(name: str):
+    async def generate():
+        try:
+            with requests.post("http://localhost:11434/api/pull", json={"name": name}, stream=True) as r:
+                for line in r.iter_lines():
+                    if line:
+                        yield f"data: {line.decode('utf-8')}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: {\"status\": \"success\"}\n\n"
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
 
 # ─── Health ───────────────────────────────────────────────────────────────────
 @app.get("/health")
@@ -245,7 +283,7 @@ async def health():
     stats = wiki.get_stats()
     return {
         "status": "ok",
-        "model": "llama3.1",
+        "model": current_model,
         "agent_loaded": _agent is not None,
         "wiki_pages": stats["total_pages"],
         "wiki_issues": stats["lint_issues"]
