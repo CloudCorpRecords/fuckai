@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import './WikiPanel.css'
+import WikiGraph from './WikiGraph.jsx'
 
 const CAT_ICONS = { entities: '👤', concepts: '🧠', topics: '📚', sessions: '💬', root: '📄' }
 const ISSUE_ICONS = { broken_link: '🔗', missing_section: '📋', stale: '🕐', empty_summary: '✏️' }
@@ -10,7 +11,7 @@ export default function WikiPanel({ onClose }) {
   const [lintIssues, setLintIssues] = useState([])
   const [selectedPage, setSelectedPage] = useState(null)
   const [pageContent, setPageContent] = useState('')
-  const [view, setView] = useState('pages') // 'pages' | 'lint' | 'ingest' | 'global'
+  const [view, setView] = useState('pages') // 'pages' | 'lint' | 'ingest' | 'global' | 'graph'
   const [globalPages, setGlobalPages] = useState([])
   const [ingestText, setIngestText] = useState('')
   const [ingestName, setIngestName] = useState('')
@@ -118,6 +119,7 @@ export default function WikiPanel({ onClose }) {
       {/* Tabs */}
       <div className="wiki-tabs">
         <button className={`wiki-tab ${view === 'pages' ? 'active' : ''}`} onClick={() => { setView('pages'); setSelectedPage(null) }}>Pages</button>
+        <button className={`wiki-tab ${view === 'graph' ? 'active' : ''}`} onClick={() => { setView('graph'); setSelectedPage(null) }}>Graph</button>
         <button className={`wiki-tab ${view === 'global' ? 'active' : ''}`} onClick={() => { setView('global'); setSelectedPage(null) }}>Shared</button>
         <button className={`wiki-tab ${view === 'lint' ? 'active' : ''}`} onClick={() => setView('lint')}>
           Health {lintIssues.length > 0 && <span className="lint-badge">{lintIssues.length}</span>}
@@ -126,6 +128,11 @@ export default function WikiPanel({ onClose }) {
       </div>
 
       <div className="wiki-body">
+        {/* Graph View */}
+        {view === 'graph' && (
+          <WikiGraph onNodeClick={(path) => { setView('pages'); openPage(path) }} />
+        )}
+
         {/* Pages View */}
         {view === 'pages' && !selectedPage && (
           <div className="wiki-pages">

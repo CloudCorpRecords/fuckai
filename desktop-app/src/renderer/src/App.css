@@ -50,12 +50,14 @@ body {
   backdrop-filter: var(--glass);
   border-bottom: 1px solid var(--border);
   z-index: 100;
+  -webkit-app-region: drag;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  pointer-events: none; /* Let drag pass through labels */
 }
 
 .logo {
@@ -83,6 +85,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  -webkit-app-region: no-drag;
 }
 
 .monitor-toggle {
@@ -235,6 +238,7 @@ body {
   display: flex;
   align-items: center;
   transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-app-region: no-drag;
 }
 .input-wrapper:focus-within {
   border-color: rgba(124, 106, 247, 0.4);

@@ -481,6 +481,51 @@ Return only the full Markdown page content."""
             content = content.replace("---", "---\n*Pulled from Global Library*\n---", 1)
         return self.write_page(rel_path, content, source="global_library")
 
+    def get_graph_data(self) -> dict:
+        """Build a graph of nodes (pages) and edges (wikilinks)."""
+        nodes = []
+        links = []
+        path_to_id = {}
+
+        # 1. Collect all pages as nodes
+        all_pages = self.list_pages()
+        for i, p in enumerate(all_pages):
+            path_to_id[p["path"]] = i
+            nodes.append({
+                "id": i,
+                "path": p["path"],
+                "title": p["title"],
+                "category": p["category"],
+                "val": 10 + (len(p.get("summary", "")) / 50) # Size based on content
+            })
+
+        # 2. Extract links from each page
+        import re
+        link_pattern = re.compile(r"\[\[([^\]]+)\]\]")
+
+        for p in all_pages:
+            full_path = self.wiki_dir / (p["path"] + ".md")
+            if not full_path.exists():
+                continue
+            
+            content = full_path.read_text(encoding="utf-8")
+            found_links = link_pattern.findall(content)
+            
+            source_id = path_to_id.get(p["path"])
+            for target_path in found_links:
+                # Clean path (strip category if absolute-ish)
+                clean_target = target_path.split("|")[0].strip()
+                target_id = path_to_id.get(clean_target)
+                
+                if source_id is not None and target_id is not None:
+                    links.append({
+                        "source": source_id,
+                        "target": target_id,
+                        "value": 1
+                    })
+
+        return {"nodes": nodes, "links": links}
+
     # ─── Helpers ──────────────────────────────────────────────────────────────
 
     def _resolve(self, rel_path: str) -> Optional[Path]:

@@ -227,6 +227,12 @@ async def wiki_import(path: str):
     return {"success": success, "path": path}
 
 
+@app.get("/wiki/graph")
+async def wiki_graph():
+    """Get the node-link graph data for the wiki."""
+    return wiki.get_graph_data()
+
+
 # ─── Health ───────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():

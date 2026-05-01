@@ -25,6 +25,7 @@ const api = {
   saveSession: () => ipcRenderer.invoke('wiki-save-session'),
   getGlobalPages: () => ipcRenderer.invoke('wiki-global'),
   importPage: (path) => ipcRenderer.invoke('wiki-import', path),
+  getWikiGraph: () => ipcRenderer.invoke('wiki-graph'),
 
   // Backend lifecycle events
   onBackendEvent: (callback) => {

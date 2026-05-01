@@ -143,6 +143,7 @@ ipcMain.handle('wiki-page', async (_, path) => { try { return await httpGet(`/wi
 ipcMain.handle('wiki-save-session', async () => { try { return await httpPostJson('/wiki/save-session', {}) } catch { return null } })
 ipcMain.handle('wiki-global', async () => { try { return await httpGet('/wiki/global') } catch { return [] } })
 ipcMain.handle('wiki-import', async (_, path) => { try { return await httpPostJson(`/wiki/import?path=${encodeURIComponent(path)}`, {}) } catch { return null } })
+ipcMain.handle('wiki-graph', async () => { try { return await httpGet('/wiki/graph') } catch { return { nodes: [], links: [] } } })
 
 // Streaming chat via IPC — sends chunks back as events
 ipcMain.on('chat-send', (event, { message, msgId, history = [] }) => {

@@ -9,6 +9,7 @@
   flex-shrink: 0;
   animation: slideInRight 0.3s ease-out;
   z-index: 50;
+  -webkit-app-region: no-drag;
 }
 
 .wiki-header {
@@ -70,6 +71,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 10px 0;
+  min-height: 500px;
 }
 .wiki-body::-webkit-scrollbar { width: 4px; }
 .wiki-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
@@ -153,6 +155,35 @@
 }
 
 .wiki-page-detail { padding: 20px; }
+
+.wiki-graph-container {
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(0,0,0,0.2);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #667;
+  text-transform: uppercase;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
 
 .md-content { font-size: 13px; color: #aaa; line-height: 1.7; }
 .md-h1 { font-size: 18px; color: #fff; margin-bottom: 16px; font-weight: 800; }
