@@ -132,30 +132,50 @@ async def run_chat_stream(message: str, history: list[dict]):
     yield f"data: {json.dumps({'type': 'status', 'content': 'Consulting wiki...'})}\n\n"
 
     try:
-        # Build wiki context and inject via instructions (official smolagents 1.24+ API)
+        from smolagents.models import ChatMessage
+
+        # Build wiki context
         wiki_context = wiki.get_context_for_query(message, max_pages=4)
-        agent = get_agent()
-        # agent.instructions is injected as {custom_instructions} in the system prompt template
-        agent.instructions = wiki_context if wiki_context else ""
 
-        # Build conversation history string for the model
-        history_lines = []
-        for m in conversation_history[:-1]:  # exclude current message
-            role = "User" if m["role"] == "user" else "Assistant"
-            history_lines.append(f"{role}: {m['content']}")
+        # Build system prompt with personality + wiki context
+        system_content = f"""You are AgentZero, a highly capable personal AI assistant running entirely locally on the user's GPU ({current_model}).
 
-        if history_lines:
-            full_prompt = "CONVERSATION HISTORY:\n" + "\n".join(history_lines[-10:]) + f"\n\nUser: {message}"
-        else:
-            full_prompt = message
+PERSONALITY:
+- Direct, intelligent, warm, and conversational
+- For greetings and casual chat: respond naturally and warmly — never say "there is no task"
+- For questions: answer directly and helpfully
+- For coding tasks: write clean, working code
+- For research tasks: reason through the problem step by step
+- Never say you cannot do something without trying first
+- Never hallucinate facts — if you don't know, say so clearly"""
+
+        if wiki_context and wiki_context.strip():
+            system_content += f"""
+
+PERSONAL KNOWLEDGE BASE (from your local wiki):
+{wiki_context}
+
+Use this knowledge when relevant to the user's question."""
+
+        # Construct messages list: system + history + current message
+        messages = [ChatMessage(role="system", content=system_content)]
+
+        # Add conversation history
+        for m in conversation_history[:-1]:  # exclude current message (already added as last)
+            messages.append(ChatMessage(role=m["role"], content=m["content"]))
+
+        # Add current user message
+        messages.append(ChatMessage(role="user", content=message))
 
         yield f"data: {json.dumps({'type': 'status', 'content': 'Thinking...'})}\n\n"
 
+        # Call LLM directly — no agent overhead, pure conversational
         def run_sync():
-            return agent.run(full_prompt, reset=True)
+            model = get_model()
+            response = model(messages)
+            return response.content if hasattr(response, 'content') else str(response)
 
-        result = await loop.run_in_executor(None, run_sync)
-        result_str = str(result)
+        result_str = await loop.run_in_executor(None, run_sync)
 
         # Update history
         with history_lock:
@@ -170,6 +190,7 @@ async def run_chat_stream(message: str, history: list[dict]):
     except Exception as e:
         error_msg = f"Sorry, I ran into an error: {str(e)}"
         print(f"[AgentZero] Chat error: {e}")
+        import traceback; traceback.print_exc()
         yield f"data: {json.dumps({'type': 'response', 'content': error_msg})}\n\n"
 
     finally:
