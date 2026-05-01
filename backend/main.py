@@ -69,7 +69,12 @@ def get_agent():
                     tools=[DuckDuckGoSearchTool()],
                     model=get_model(),
                     verbosity_level=0,
-                    max_steps=5
+                    max_steps=5,
+                    instructions=(
+                        "You are AgentZero, a highly capable personal AI assistant running entirely locally on the user's GPU. "
+                        "Be direct, intelligent, warm but efficient. For casual chat, respond conversationally without using tools. "
+                        "Use web search only when you genuinely need current or real-world facts. Never hallucinate."
+                    )
                 )
                 print(f"[AgentZero] Agent ready with model: {current_model}")
     return _agent
@@ -127,10 +132,11 @@ async def run_chat_stream(message: str, history: list[dict]):
     yield f"data: {json.dumps({'type': 'status', 'content': 'Consulting wiki...'})}\n\n"
 
     try:
-        # Build context-aware prompt
-        system_prompt = build_system_prompt(message)
+        # Build wiki context and inject via instructions (official smolagents 1.24+ API)
+        wiki_context = wiki.get_context_for_query(message, max_pages=4)
         agent = get_agent()
-        agent.system_prompt = system_prompt
+        # agent.instructions is injected as {custom_instructions} in the system prompt template
+        agent.instructions = wiki_context if wiki_context else ""
 
         # Build conversation history string for the model
         history_lines = []
