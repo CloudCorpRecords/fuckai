@@ -215,34 +215,35 @@ export default function App() {
 
       <div className="app-body">
         {showReasoning && <ReasoningPanel thoughts={thoughts} isOpen={true} onClose={() => setShowReasoning(false)} />}
-        <div className="messages">
-          {messages.map(msg => <Message key={msg.id} msg={msg} />)}
-          <div ref={messagesEndRef} />
+        <div className="chat-column">
+          <div className="messages">
+            {messages.map(msg => <Message key={msg.id} msg={msg} />)}
+            <div ref={messagesEndRef} />
+          </div>
+          <div className="input-container">
+            <div className="input-wrapper">
+              <div className="input-area">
+                <input
+                  ref={inputRef}
+                  placeholder="Ask anything — I can browse the web and write code..."
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !isLoading && sendMessage()}
+                  disabled={isLoading}
+                />
+              </div>
+              <button
+                className="send-btn"
+                onClick={sendMessage}
+                disabled={isLoading || !input.trim()}
+              >
+                {isLoading ? '...' : '↑'}
+              </button>
+            </div>
+            <p className="footer-info">Running locally · 100% private · No cloud APIs</p>
+          </div>
         </div>
         {showWiki && <WikiPanel onClose={() => setShowWiki(false)} />}
-      </div>
-
-      <div className="input-container">
-        <div className="input-wrapper">
-          <div className="input-area" style={{ flex: 1 }}>
-            <input
-              ref={inputRef}
-              placeholder="Ask anything — I can browse the web and write code..."
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !isLoading && sendMessage()}
-              disabled={isLoading}
-            />
-          </div>
-          <button
-            className="send-btn"
-            onClick={sendMessage}
-            disabled={isLoading || !input.trim()}
-          >
-            {isLoading ? '...' : '↑'}
-          </button>
-        </div>
-        <p className="footer-info">Running locally · 100% private · No cloud APIs</p>
       </div>
     </div>
   )

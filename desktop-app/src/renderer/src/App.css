@@ -38,6 +38,15 @@ body {
   flex: 1;
   overflow: hidden;
   position: relative;
+  min-width: 0;
+}
+
+.chat-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* ─── HEADER ─────────────────────────────────── */
@@ -57,7 +66,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  pointer-events: none; /* Let drag pass through labels */
+  -webkit-app-region: no-drag;
 }
 
 .logo {
@@ -72,8 +81,8 @@ body {
 .model-tag-btn {
   background: rgba(255, 255, 255, 0.1);
   color: #a78bfa;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -81,11 +90,15 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   outline: none;
+  pointer-events: auto;
+  -webkit-app-region: no-drag;
+  white-space: nowrap;
 }
 .model-tag-btn:hover:not(:disabled) {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: rgba(167, 139, 250, 0.6);
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.7);
   color: #c4b5fd;
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
 }
 .model-tag-btn:disabled {
   opacity: 0.5;
@@ -256,8 +269,14 @@ body {
   box-shadow: 0 0 30px rgba(124, 106, 247, 0.1);
 }
 
+.input-area {
+  display: flex;
+  flex: 1;
+}
+
 .input-area input {
   flex: 1;
+  width: 100%;
   background: none;
   border: none;
   color: #fff;

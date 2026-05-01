@@ -126,40 +126,48 @@ async def run_chat_stream(message: str, history: list[dict]):
 
     yield f"data: {json.dumps({'type': 'status', 'content': 'Consulting wiki...'})}\n\n"
 
-    # Build context-aware prompt
-    system_prompt = build_system_prompt(message)
-    agent = get_agent()
-    agent.system_prompt = system_prompt
+    try:
+        # Build context-aware prompt
+        system_prompt = build_system_prompt(message)
+        agent = get_agent()
+        agent.system_prompt = system_prompt
 
-    # Build conversation history string for the model
-    history_lines = []
-    for m in conversation_history[:-1]:  # exclude current message
-        role = "User" if m["role"] == "user" else "Assistant"
-        history_lines.append(f"{role}: {m['content']}")
+        # Build conversation history string for the model
+        history_lines = []
+        for m in conversation_history[:-1]:  # exclude current message
+            role = "User" if m["role"] == "user" else "Assistant"
+            history_lines.append(f"{role}: {m['content']}")
 
-    if history_lines:
-        full_prompt = "CONVERSATION HISTORY:\n" + "\n".join(history_lines[-10:]) + f"\n\nUser: {message}"
-    else:
-        full_prompt = message
+        if history_lines:
+            full_prompt = "CONVERSATION HISTORY:\n" + "\n".join(history_lines[-10:]) + f"\n\nUser: {message}"
+        else:
+            full_prompt = message
 
-    yield f"data: {json.dumps({'type': 'status', 'content': 'Thinking...'})}\n\n"
+        yield f"data: {json.dumps({'type': 'status', 'content': 'Thinking...'})}\n\n"
 
-    def run_sync():
-        return agent.run(full_prompt, reset=True)
+        def run_sync():
+            return agent.run(full_prompt, reset=True)
 
-    result = await loop.run_in_executor(None, run_sync)
-    result_str = str(result)
+        result = await loop.run_in_executor(None, run_sync)
+        result_str = str(result)
 
-    # Update history
-    with history_lock:
-        conversation_history.append({"role": "assistant", "content": result_str})
+        # Update history
+        with history_lock:
+            conversation_history.append({"role": "assistant", "content": result_str})
 
-    # Background wiki update (non-blocking)
-    snapshot = list(conversation_history)
-    wiki.update_from_conversation(snapshot, call_llm_direct)
+        # Background wiki update (non-blocking)
+        snapshot = list(conversation_history)
+        wiki.update_from_conversation(snapshot, call_llm_direct)
 
-    yield f"data: {json.dumps({'type': 'response', 'content': result_str})}\n\n"
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        yield f"data: {json.dumps({'type': 'response', 'content': result_str})}\n\n"
+
+    except Exception as e:
+        error_msg = f"Sorry, I ran into an error: {str(e)}"
+        print(f"[AgentZero] Chat error: {e}")
+        yield f"data: {json.dumps({'type': 'response', 'content': error_msg})}\n\n"
+
+    finally:
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
 
 @app.post("/chat")
