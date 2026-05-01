@@ -233,6 +233,12 @@ async def wiki_graph():
     return wiki.get_graph_data()
 
 
+@app.post("/wiki/clip")
+async def wiki_clip(url: str):
+    """Clip a web page into the wiki."""
+    return wiki.clip_url(url, llm_caller=call_llm_direct)
+
+
 # ─── Health ───────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():

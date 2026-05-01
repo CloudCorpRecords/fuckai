@@ -553,3 +553,31 @@ Return only the full Markdown page content."""
     def _extract_timestamp(self, content: str) -> Optional[str]:
         m = re.search(r'\*Last compiled: (\d{4}-\d{2}-\d{2})', content)
         return m.group(1) if m else None
+    def clip_url(self, url: str, llm_caller=None) -> dict:
+        """Fetch a URL and compile it into a wiki page."""
+        import trafilatura
+        
+        downloaded = trafilatura.fetch_url(url)
+        if not downloaded:
+            return {"success": False, "error": "Could not download URL"}
+        
+        content = trafilatura.extract(downloaded)
+        if not content:
+            return {"success": False, "error": "Could not extract content"}
+
+        # Use LLM to format into wiki schema
+        if llm_caller:
+            prompt = f"Compile the following web content into a structured wiki page following the schema exactly:\n\n{content[:5000]}"
+            compiled = llm_caller(prompt, system_prompt=PAGE_SCHEMA_DESCRIPTION)
+            
+            # Extract title from content or URL
+            title_match = re.search(r"^# (.*)", compiled, re.M)
+            title = title_match.group(1).strip() if title_match else "Clipped Page"
+            safe_title = re.sub(r"[^\w]", "_", title.lower())
+            
+            # Determine category (default to topics)
+            path = f"topics/{safe_title}"
+            self.write_page(path, compiled)
+            return {"success": True, "path": path, "title": title}
+        
+        return {"success": False, "error": "LLM caller required for clipping"}

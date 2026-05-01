@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import WikiPanel from './WikiPanel.jsx'
+import ReasoningPanel from './ReasoningPanel.jsx'
 
 // ─── GPU Monitor ─────────────────────────────────────────────────────────────
 function GpuBar({ label, value, max, unit, color }) {
@@ -89,6 +90,8 @@ export default function App() {
   const [backendPid, setBackendPid] = useState(null)
   const [showMonitor, setShowMonitor] = useState(true)
   const [showWiki, setShowWiki] = useState(false)
+  const [showReasoning, setShowReasoning] = useState(true)
+  const [thoughts, setThoughts] = useState([])
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const api = window.api
@@ -138,6 +141,8 @@ export default function App() {
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: content } : m))
       } else if (type === 'response') {
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content, status: null } : m))
+      } else if (type === 'thought') {
+        setThoughts(prev => [...prev, content])
       } else if (type === 'done') {
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: null } : m))
         setIsLoading(false)
@@ -156,6 +161,7 @@ export default function App() {
     const agentMsgId = `agent-${Date.now()}`
     const agentMsg = { id: agentMsgId, role: 'agent', content: '', status: 'Thinking...' }
     setMessages(prev => [...prev, userMsg, agentMsg])
+    setThoughts([])
     setInput('')
     setIsLoading(true)
 
@@ -180,6 +186,7 @@ export default function App() {
           <div className="model-tag">Llama 3.1 · Local</div>
         </div>
         <div className="header-right">
+          <button className={`monitor-toggle ${showReasoning ? 'active' : ''}`} onClick={() => setShowReasoning(p => !p)} title="Reasoning Sidebar">🧠</button>
           <button className={`monitor-toggle ${showMonitor ? 'active' : ''}`} onClick={() => setShowMonitor(p => !p)} title="GPU Monitor">📊</button>
           <button className={`monitor-toggle ${showWiki ? 'active' : ''}`} onClick={() => setShowWiki(p => !p)} title="Knowledge Wiki">📚</button>
           <div className="status-area">
@@ -192,6 +199,7 @@ export default function App() {
       {showMonitor && <GpuMonitor gpu={gpu} backendPid={backendPid} />}
 
       <div className="app-body">
+        {showReasoning && <ReasoningPanel thoughts={thoughts} isOpen={true} onClose={() => setShowReasoning(false)} />}
         <div className="messages">
           {messages.map(msg => <Message key={msg.id} msg={msg} />)}
           <div ref={messagesEndRef} />

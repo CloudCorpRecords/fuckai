@@ -3,3 +3,6 @@ uvicorn[standard]
 smolagents
 litellm
 duckduckgo-search
+trafilatura
+python-multipart
+requests

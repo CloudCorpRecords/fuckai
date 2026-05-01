@@ -1,0 +1,142 @@
+.reasoning-sidebar {
+  width: 320px;
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-shrink: 0;
+  animation: slideInLeft 0.3s ease-out;
+  z-index: 50;
+}
+
+.reasoning-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reasoning-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.reasoning-icon { font-size: 18px; }
+
+.close-sidebar {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+.close-sidebar:hover { color: #fff; }
+
+.reasoning-steps {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.reasoning-steps::-webkit-scrollbar { width: 4px; }
+.reasoning-steps::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+
+.thought-step {
+  position: relative;
+  padding-left: 20px;
+  border-left: 1px solid rgba(124, 106, 247, 0.2);
+}
+
+.thought-dot {
+  position: absolute;
+  left: -4.5px;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: #7c6af7;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #7c6af7;
+}
+
+.thought-time {
+  font-size: 10px;
+  color: #555;
+  margin-bottom: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.thought-text {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.reasoning-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  text-align: center;
+}
+
+.empty-brain {
+  font-size: 40px;
+  margin-bottom: 10px;
+  opacity: 0.3;
+}
+
+.reasoning-footer {
+  padding: 12px 20px;
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #667;
+  text-transform: uppercase;
+}
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

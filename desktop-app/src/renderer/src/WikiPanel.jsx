@@ -11,10 +11,12 @@ export default function WikiPanel({ onClose }) {
   const [lintIssues, setLintIssues] = useState([])
   const [selectedPage, setSelectedPage] = useState(null)
   const [pageContent, setPageContent] = useState('')
-  const [view, setView] = useState('pages') // 'pages' | 'lint' | 'ingest' | 'global' | 'graph'
+  const [view, setView] = useState('pages') // 'pages' | 'lint' | 'ingest' | 'global' | 'graph' | 'clip'
   const [globalPages, setGlobalPages] = useState([])
   const [ingestText, setIngestText] = useState('')
   const [ingestName, setIngestName] = useState('')
+  const [clipUrl, setClipUrl] = useState('')
+  const [isClipping, setIsClipping] = useState(false)
   const [loading, setLoading] = useState(false)
   const [savingSession, setSavingSession] = useState(false)
   const api = window.api
@@ -91,6 +93,26 @@ export default function WikiPanel({ onClose }) {
     ;(globalByCategory[cat] = globalByCategory[cat] || []).push(p)
   }
 
+  const handleClip = async () => {
+    if (!clipUrl.trim() || isClipping) return
+    setIsClipping(true)
+    try {
+      const res = await fetch(`http://127.0.0.1:8765/wiki/clip?url=${encodeURIComponent(clipUrl)}`, { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        setClipUrl('')
+        setView('pages')
+        openPage(data.path)
+      } else {
+        alert('Clip failed: ' + data.error)
+      }
+    } catch (e) {
+      alert('Error clipping: ' + e.message)
+    } finally {
+      setIsClipping(false)
+    }
+  }
+
   return (
     <div className="wiki-panel">
       {/* Header */}
@@ -120,6 +142,7 @@ export default function WikiPanel({ onClose }) {
       <div className="wiki-tabs">
         <button className={`wiki-tab ${view === 'pages' ? 'active' : ''}`} onClick={() => { setView('pages'); setSelectedPage(null) }}>Pages</button>
         <button className={`wiki-tab ${view === 'graph' ? 'active' : ''}`} onClick={() => { setView('graph'); setSelectedPage(null) }}>Graph</button>
+        <button className={`wiki-tab ${view === 'clip' ? 'active' : ''}`} onClick={() => setView('clip')}>✂️ Clip</button>
         <button className={`wiki-tab ${view === 'global' ? 'active' : ''}`} onClick={() => { setView('global'); setSelectedPage(null) }}>Shared</button>
         <button className={`wiki-tab ${view === 'lint' ? 'active' : ''}`} onClick={() => setView('lint')}>
           Health {lintIssues.length > 0 && <span className="lint-badge">{lintIssues.length}</span>}
@@ -128,6 +151,28 @@ export default function WikiPanel({ onClose }) {
       </div>
 
       <div className="wiki-body">
+        {/* Clip View */}
+        {view === 'clip' && (
+          <div className="wiki-ingest">
+            <h3 style={{ color: '#fff', fontSize: '14px', marginBottom: '10px' }}>Web Clipper</h3>
+            <p style={{ fontSize: '11px', color: '#667', marginBottom: '15px' }}>Enter a URL to distill its content into a clean wiki page.</p>
+            <input 
+              className="ingest-input"
+              placeholder="https://example.com/article"
+              value={clipUrl}
+              onChange={e => setClipUrl(e.target.value)}
+              disabled={isClipping}
+            />
+            <button 
+              className="ingest-btn" 
+              onClick={handleClip}
+              disabled={isClipping || !clipUrl.trim()}
+            >
+              {isClipping ? 'Clipping & Distilling...' : 'Clip to Wiki'}
+            </button>
+          </div>
+        )}
+
         {/* Graph View */}
         {view === 'graph' && (
           <WikiGraph onNodeClick={(path) => { setView('pages'); openPage(path) }} />
